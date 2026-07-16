@@ -14,7 +14,7 @@ import type {
 
 const BASE_URL = import.meta.env.DEV
   ? '/api/daten'
-  : `${import.meta.env.VITE_API_PROXY ?? 'https://niwis-online.de'}/api/daten`
+  : `${import.meta.env.VITE_API_PROXY || 'https://niwis-online.de'}/api/daten`
 
 const TTL = {
   stations: 24 * 60 * 60 * 1000,
