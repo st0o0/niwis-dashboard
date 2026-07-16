@@ -2,27 +2,48 @@ export type MessgroesseType = 'abfluss' | 'wasserstand' | 'grundwasserstand' | '
 
 export type NiedrigwasserKlasse = 'keine' | 'niedrig' | 'sehr_niedrig' | 'extrem_niedrig'
 
+export type TrendDirection = 'steigend' | 'fallend' | 'gleichbleibend'
+
 export interface NiwisStation {
   messstelleNr: string
   name: string
-  gewaesser: string
-  betreiber: string
-  breite: number
-  laenge: number
-  messgroessen: string[]
-  bundesland: string
+  landcode: string
+  lizenz: string
+  messgroesse: string[]
+  // Enriched from /stammdaten
+  breite?: number
+  laenge?: number
+  gewaesser?: string
+  betreiber?: string
+  institution?: string
+  ezgGroesse?: number | null
+  hoehePnp?: number | null
 }
 
 export interface NiwisStammdaten {
   messstelleNr: string
   name: string
-  gewaesser: string
+  landcode: string
+  lizenz: string
+  messgroesse: string[]
+  institution: string
   betreiber: string
-  breite: number
+  urlInstitution: string | null
+  urlBetreiber: string | null
+  urlMessstelle: string | null
+  hoehensystem: string | null
+  bemerkung: string | null
   laenge: number
-  pegelnullpunkt?: number
-  einzugsgebietsgroesse?: number
-  bundesland: string
+  breite: number
+  gewaesser: string
+  gkz: number | null
+  lageGewaesser: string | null
+  ezgGroesse: number | null
+  hoehePnp: number | null
+  nnw: number | null
+  nnwDatum: string | null
+  nnq: number | null
+  nnqDatum: string | null
 }
 
 export interface NiwisMesswert {
@@ -31,6 +52,26 @@ export interface NiwisMesswert {
   messwert: number
   einheit: string
   flag: string | null
+}
+
+export interface NiwisEinzelwertKategorie {
+  einzelwert: string
+  einheit: string | null
+  hatZuvieleFehlwerte: boolean
+  fehlermeldung: string | null
+}
+
+export interface NiwisEinzelwertNummer {
+  einzelwert: number
+  einheit: string | null
+  hatZuvieleFehlwerte: boolean
+  fehlermeldung: string | null
+}
+
+export interface NiwisZeitreihenReferenz {
+  startDatum: string
+  zeitreihenGranularitaet: string
+  werte: number[]
 }
 
 export interface NiwisAbgeleiteteGroesse {
@@ -49,12 +90,9 @@ export interface NiwisZeitreihenErgebnis {
   fehlermeldung: string | null
 }
 
-export interface NiwisKlassifikation {
-  messstelleNr: string
-  klasse: string
-  grenzwerte: Record<string, number>
-  hatZuvieleFehlwerte: boolean
-  fehlermeldung: string | null
+export interface NiwisKlimaindikator {
+  niedrigwassertageWinterhalbjahrProFlussgebiet: Record<string, number[]>
+  niedrigwasserttageSommerhalbjahrProFlussgebiet: Record<string, number[]>
 }
 
 export interface ZeitreihenParams {
@@ -65,6 +103,31 @@ export interface ZeitreihenParams {
   endJahr?: number
   von?: string
   bis?: string
+}
+
+export const MESSGROESSE_API_MAP: Record<string, MessgroesseType> = {
+  'Abfluss': 'abfluss',
+  'Wasserstand': 'wasserstand',
+  'Grundwasserstand': 'grundwasserstand',
+  'Quellschüttung': 'quellschuettung',
+}
+
+export const LANDCODE_LABELS: Record<string, string> = {
+  DEBB: 'Brandenburg',
+  DEBE: 'Berlin',
+  DEBW: 'Baden-Württemberg',
+  DEBY: 'Bayern',
+  DEHB: 'Bremen',
+  DEHE: 'Hessen',
+  DEMV: 'Mecklenburg-Vorpommern',
+  DENI: 'Niedersachsen',
+  DENW: 'Nordrhein-Westfalen',
+  DERP: 'Rheinland-Pfalz',
+  DESH: 'Schleswig-Holstein',
+  DESN: 'Sachsen',
+  DEST: 'Sachsen-Anhalt',
+  DETH: 'Thüringen',
+  DEXX: 'Bund',
 }
 
 export const CLASSIFICATION_COLORS: Record<NiedrigwasserKlasse, string> = {

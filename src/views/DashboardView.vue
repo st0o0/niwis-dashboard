@@ -43,12 +43,15 @@ const watchedStations = computed(() =>
 onMounted(async () => {
   const bis = new Date().toISOString().slice(0, 10)
   const von = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
-  for (const nr of watchlistStore.watchlist) {
-    try {
+  const results = await Promise.allSettled(
+    watchlistStore.watchlist.map(async (nr) => {
       const data = await getMesswerte('abfluss', nr, von, bis)
-      watchlistData.value.set(nr, data)
-    } catch {
-      // station may not have abfluss data
+      return { nr, data }
+    }),
+  )
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      watchlistData.value.set(result.value.nr, result.value.data)
     }
   }
 })
@@ -70,7 +73,7 @@ onMounted(async () => {
     </div>
 
     <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-      <StationMap :stations="stationStore.stations" height="400px" />
+      <StationMap :stations="stationStore.enrichedStations" height="400px" />
     </div>
 
     <div v-if="watchedStations.length > 0">
@@ -83,6 +86,16 @@ onMounted(async () => {
           :recent-data="watchlistData.get(station.messstelleNr) ?? []"
         />
       </div>
+    </div>
+
+    <div v-if="stationStore.enriching" class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+      <div class="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+      <span>Stammdaten laden... {{ stationStore.enrichProgress }}%</span>
+    </div>
+
+    <div v-if="classificationStore.loading" class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+      <div class="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+      <span>Klassifikation laden... {{ classificationStore.progress }}%</span>
     </div>
 
     <div v-if="stationStore.loading" class="flex justify-center py-12">

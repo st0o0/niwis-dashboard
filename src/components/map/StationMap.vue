@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   LMap,
   LTileLayer,
@@ -21,6 +21,10 @@ const props = withDefaults(defineProps<{
   height: '100%',
   interactive: true,
 })
+
+const mappableStations = computed(() =>
+  props.stations.filter((s) => s.breite !== undefined && s.laenge !== undefined),
+)
 
 const emit = defineEmits<{
   'station-click': [messstelleNr: string]
@@ -63,7 +67,7 @@ function onMarkerClick(station: NiwisStation) {
         :visible="false"
       />
       <LCircleMarker
-        v-for="station in props.stations"
+        v-for="station in mappableStations"
         :key="station.messstelleNr"
         :lat-lng="[station.breite, station.laenge]"
         :radius="7"

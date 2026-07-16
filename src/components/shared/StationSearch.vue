@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useStationStore } from '../../stores/station'
+import { LANDCODE_LABELS } from '../../types/niwis'
 
 withDefaults(defineProps<{ placeholder?: string }>(), {
   placeholder: 'Station suchen...',
@@ -15,7 +16,11 @@ const results = computed(() => {
   if (query.value.length < 2) return []
   const q = query.value.toLowerCase()
   return stationStore.stations
-    .filter((s) => s.name.toLowerCase().includes(q) || s.gewaesser.toLowerCase().includes(q))
+    .filter((s) =>
+      s.name.toLowerCase().includes(q) ||
+      s.messstelleNr.toLowerCase().includes(q) ||
+      (s.gewaesser?.toLowerCase().includes(q) ?? false),
+    )
     .slice(0, 10)
 })
 
@@ -52,7 +57,7 @@ function handleBlur() {
         class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0"
       >
         <div class="font-medium">{{ station.name }}</div>
-        <div class="text-xs text-gray-500">{{ station.gewaesser }} · {{ station.bundesland }}</div>
+        <div class="text-xs text-gray-500">{{ station.gewaesser ?? '' }} · {{ LANDCODE_LABELS[station.landcode] ?? station.landcode }}</div>
       </button>
     </div>
   </div>

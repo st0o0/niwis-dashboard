@@ -3,14 +3,18 @@ import type {
   NiwisStation,
   NiwisStammdaten,
   NiwisMesswert,
+  NiwisEinzelwertKategorie,
+  NiwisEinzelwertNummer,
   NiwisAbgeleiteteGroesse,
+  NiwisZeitreihenReferenz,
+  NiwisKlimaindikator,
   MessgroesseType,
   ZeitreihenParams,
 } from '../types/niwis'
 
 const BASE_URL = import.meta.env.DEV
   ? '/api/daten'
-  : 'https://www.niwis-online.de/api/daten'
+  : `${import.meta.env.VITE_API_PROXY ?? 'https://niwis-online.de'}/api/daten`
 
 const TTL = {
   stations: 24 * 60 * 60 * 1000,
@@ -104,8 +108,74 @@ export function berechneKlassifikation(
   )
 }
 
-export function berechneKlimaindikator(): Promise<unknown> {
+export function getClassification(
+  messstelleNr: string,
+  abgeleiteteGroesse: string,
+): Promise<NiwisEinzelwertKategorie> {
+  const params: Record<string, string> = {
+    messstelleNr,
+    abgeleiteteGroesse,
+    startJahr: '1991',
+    endJahr: '2020',
+    jahresdefinition: 'KALENDERJAHR',
+  }
+  const cacheKey = `niwis:klassifikation:${messstelleNr}:${abgeleiteteGroesse}`
+  return cachedFetch(cacheKey, TTL.abgeleitet, () =>
+    fetchJson<NiwisEinzelwertKategorie>('/berechneEinzelwertKategorie', params),
+  )
+}
+
+export function getTrend(
+  messstelleNr: string,
+  abgeleiteteGroesse: string,
+): Promise<NiwisEinzelwertKategorie> {
+  const cacheKey = `niwis:trend:${messstelleNr}:${abgeleiteteGroesse}`
+  return cachedFetch(cacheKey, TTL.messwerte, () =>
+    fetchJson<NiwisEinzelwertKategorie>('/berechneEinzelwertKategorie', {
+      messstelleNr,
+      abgeleiteteGroesse,
+    }),
+  )
+}
+
+export function getReferenceValue(
+  messstelleNr: string,
+  abgeleiteteGroesse: string,
+): Promise<NiwisEinzelwertNummer> {
+  const params: Record<string, string> = {
+    messstelleNr,
+    abgeleiteteGroesse,
+    startJahr: '1991',
+    endJahr: '2020',
+    jahresdefinition: 'KALENDERJAHR',
+  }
+  const cacheKey = `niwis:refval:${messstelleNr}:${abgeleiteteGroesse}`
+  return cachedFetch(cacheKey, TTL.stammdaten, () =>
+    fetchJson<NiwisEinzelwertNummer>('/berechneEinzelwertNummer', params),
+  )
+}
+
+export function getReferenceSeries(
+  messstelleNr: string,
+  abgeleiteteGroesse: string,
+): Promise<NiwisZeitreihenReferenz> {
+  const params: Record<string, string> = {
+    messstelleNr,
+    abgeleiteteGroesse,
+    startJahr: '1991',
+    endJahr: '2020',
+    jahresdefinition: 'KALENDERJAHR',
+  }
+  const cacheKey = `niwis:refseries:${messstelleNr}:${abgeleiteteGroesse}`
+  return cachedFetch(cacheKey, TTL.stammdaten, () =>
+    fetchJson<NiwisZeitreihenReferenz>('/berechneZeitreihenErgebnisNummer', params),
+  )
+}
+
+export function getKlimaindikator(): Promise<NiwisKlimaindikator> {
   return cachedFetch('niwis:klimaindikator', TTL.abgeleitet, () =>
-    fetchJson<unknown>('/berechneKlimaindikatorNiedrigwassertage'),
+    fetchJson<NiwisKlimaindikator>('/berechneKlimaindikatorNiedrigwassertage', {
+      messstelleNr: 'DESM_DEBY16607001',
+    }),
   )
 }

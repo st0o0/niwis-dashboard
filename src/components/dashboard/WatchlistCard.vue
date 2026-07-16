@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { NiwisStation, NiwisMesswert } from '../../types/niwis'
 import { useClassificationStore } from '../../stores/classification'
+import { useTrendStore } from '../../stores/trend'
 import SparklineChart from '../charts/SparklineChart.vue'
 import ClassificationGauge from '../charts/ClassificationGauge.vue'
 import WatchlistToggle from '../shared/WatchlistToggle.vue'
@@ -13,7 +14,9 @@ const props = defineProps<{
 }>()
 
 const classificationStore = useClassificationStore()
+const trendStore = useTrendStore()
 const klasse = computed(() => classificationStore.getKlasse(props.station.messstelleNr))
+const trend = computed(() => trendStore.getTrendForStation(props.station.messstelleNr))
 const latestValue = computed(() => props.recentData.length > 0
   ? props.recentData.reduce((a, b) => a.datum > b.datum ? a : b)
   : null)
@@ -27,12 +30,19 @@ const latestValue = computed(() => props.recentData.length > 0
     <div class="flex items-start justify-between">
       <div>
         <div class="font-semibold text-sm">{{ station.name }}</div>
-        <div class="text-xs text-gray-500 dark:text-gray-400">{{ station.gewaesser }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">{{ station.gewaesser ?? '' }}</div>
       </div>
       <WatchlistToggle :messstelle-nr="station.messstelleNr" />
     </div>
     <div v-if="latestValue" class="mt-2 text-lg font-bold">
       {{ latestValue.messwert }} <span class="text-sm font-normal text-gray-500">{{ latestValue.einheit }}</span>
+      <span v-if="trend" class="text-sm ml-1" :class="{
+        'text-red-500': trend === 'fallend',
+        'text-green-500': trend === 'steigend',
+        'text-gray-400': trend === 'gleichbleibend',
+      }">
+        {{ trend === 'steigend' ? '↗' : trend === 'fallend' ? '↘' : '→' }}
+      </span>
     </div>
     <SparklineChart
       v-if="recentData.length > 0"

@@ -10,12 +10,13 @@ import type { NiwisStation } from '../../../types/niwis'
 const station: NiwisStation = {
   messstelleNr: '1234',
   name: 'Testpegel',
+  landcode: 'DEHE',
+  lizenz: 'cc-by/4.0',
+  messgroesse: ['Abfluss'],
   gewaesser: 'Testfluss',
   betreiber: 'Test',
   breite: 51.1,
   laenge: 10.4,
-  messgroessen: ['abfluss'],
-  bundesland: 'Hessen',
 }
 
 const router = createRouter({

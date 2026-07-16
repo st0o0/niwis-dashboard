@@ -1,29 +1,48 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useStationStore } from '../stores/station'
 import { useClassificationStore } from '../stores/classification'
 import StationMap from '../components/map/StationMap.vue'
 import type { MessgroesseType, NiedrigwasserKlasse } from '../types/niwis'
-import { MESSGROESSE_LABELS, CLASSIFICATION_LABELS } from '../types/niwis'
+import { MESSGROESSE_LABELS, CLASSIFICATION_LABELS, MESSGROESSE_API_MAP, LANDCODE_LABELS } from '../types/niwis'
 
 const router = useRouter()
+const route = useRoute()
 const stationStore = useStationStore()
 const classificationStore = useClassificationStore()
 
+const SURFACE_WATER = ['Abfluss', 'Wasserstand', 'Quellschüttung']
+const GROUNDWATER = ['Grundwasserstand']
+
+const kategorie = computed(() => (route.query.kat as string) ?? '')
+const kategorieLabel = computed(() => {
+  switch (kategorie.value) {
+    case 'oberflaechengewaesser': return 'Oberflächengewässer'
+    case 'grundwasser': return 'Grundwasser'
+    default: return 'Alle Stationen'
+  }
+})
+
 const filterMessgroesse = ref<MessgroesseType | ''>('')
-const filterBundesland = ref('')
+const filterLandcode = ref('')
 const filterKlasse = ref<NiedrigwasserKlasse | ''>('')
 
-const bundeslaender = computed(() => {
-  const set = new Set(stationStore.stations.map((s) => s.bundesland))
+const landcodes = computed(() => {
+  const set = new Set(stationStore.stations.map((s) => s.landcode))
   return [...set].sort()
 })
 
 const filteredStations = computed(() => {
-  return stationStore.stations.filter((s) => {
-    if (filterBundesland.value && s.bundesland !== filterBundesland.value) return false
-    if (filterMessgroesse.value && !s.messgroessen?.includes(filterMessgroesse.value)) return false
+  return stationStore.enrichedStations.filter((s) => {
+    if (kategorie.value === 'oberflaechengewaesser' && !s.messgroesse.some(m => SURFACE_WATER.includes(m))) return false
+    if (kategorie.value === 'grundwasser' && !s.messgroesse.some(m => GROUNDWATER.includes(m))) return false
+    if (filterLandcode.value && s.landcode !== filterLandcode.value) return false
+    if (filterMessgroesse.value) {
+      const apiName = Object.entries(MESSGROESSE_API_MAP)
+        .find(([, v]) => v === filterMessgroesse.value)?.[0]
+      if (!apiName || !s.messgroesse.includes(apiName)) return false
+    }
     if (filterKlasse.value && classificationStore.getKlasse(s.messstelleNr) !== filterKlasse.value) return false
     return true
   })
@@ -35,7 +54,7 @@ function onStationClick(nr: string) {
 
 function clearFilters() {
   filterMessgroesse.value = ''
-  filterBundesland.value = ''
+  filterLandcode.value = ''
   filterKlasse.value = ''
 }
 </script>
@@ -43,7 +62,7 @@ function clearFilters() {
 <template>
   <div class="flex flex-col h-[calc(100vh-3rem)]">
     <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold">Karte</h1>
+      <h1 class="text-2xl font-bold">{{ kategorieLabel }}</h1>
       <span class="text-sm text-gray-500 dark:text-gray-400">
         {{ filteredStations.length }} / {{ stationStore.stations.length }} Stationen
       </span>
@@ -61,11 +80,11 @@ function clearFilters() {
       </select>
 
       <select
-        v-model="filterBundesland"
+        v-model="filterLandcode"
         class="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
       >
         <option value="">Alle Bundesländer</option>
-        <option v-for="bl in bundeslaender" :key="bl" :value="bl">{{ bl }}</option>
+        <option v-for="code in landcodes" :key="code" :value="code">{{ LANDCODE_LABELS[code] ?? code }}</option>
       </select>
 
       <select
@@ -79,7 +98,7 @@ function clearFilters() {
       </select>
 
       <button
-        v-if="filterMessgroesse || filterBundesland || filterKlasse"
+        v-if="filterMessgroesse || filterLandcode || filterKlasse"
         @click="clearFilters"
         class="px-3 py-1.5 text-sm text-red-500 hover:text-red-700"
       >

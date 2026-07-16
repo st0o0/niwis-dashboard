@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useStationStore } from './stores/station'
+import { useClassificationStore } from './stores/classification'
+import { useTrendStore } from './stores/trend'
 import AppSidebar from './components/layout/AppSidebar.vue'
 
 const stationStore = useStationStore()
+const classificationStore = useClassificationStore()
+const trendStore = useTrendStore()
 
-onMounted(() => {
-  stationStore.fetchStations()
+onMounted(async () => {
+  await stationStore.fetchStations()
+  classificationStore.fetchAllClassifications(stationStore.stations)
+  trendStore.fetchAllTrends(stationStore.stations)
 })
 </script>
 

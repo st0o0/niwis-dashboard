@@ -3,6 +3,12 @@ import { setActivePinia, createPinia } from 'pinia'
 
 vi.mock('../../api/niwis', () => ({
   getStations: vi.fn(),
+  getStammdaten: vi.fn(),
+}))
+
+vi.mock('idb-keyval', () => ({
+  get: vi.fn().mockResolvedValue(undefined),
+  set: vi.fn().mockResolvedValue(undefined),
 }))
 
 import { useStationStore } from '../station'
@@ -22,8 +28,8 @@ describe('useStationStore', () => {
 
   it('fetches and stores stations', async () => {
     const mockStations = [
-      { messstelleNr: 'S1', name: 'Station 1', bundesland: 'Bayern', breite: 48.1, laenge: 11.5 },
-      { messstelleNr: 'S2', name: 'Station 2', bundesland: 'NRW', breite: 51.2, laenge: 7.1 },
+      { messstelleNr: 'S1', name: 'Station 1', landcode: 'DEBY', lizenz: 'cc-by/4.0', messgroesse: ['Abfluss'], breite: 48.1, laenge: 11.5 },
+      { messstelleNr: 'S2', name: 'Station 2', landcode: 'DENW', lizenz: 'cc-by/4.0', messgroesse: ['Wasserstand'], breite: 51.2, laenge: 7.1 },
     ]
     ;(getStations as ReturnType<typeof vi.fn>).mockResolvedValue(mockStations)
 
