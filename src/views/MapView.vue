@@ -49,7 +49,7 @@ const filteredStations = computed(() => {
 })
 
 function onStationClick(nr: string) {
-  router.push(`/station/${nr}`)
+  router.push({ name: 'station', params: { id: nr } })
 }
 
 function clearFilters() {

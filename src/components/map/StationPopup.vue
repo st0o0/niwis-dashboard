@@ -47,7 +47,7 @@ const trendLabel = computed(() => {
       <span class="text-xs text-gray-500">{{ trendLabel }}</span>
     </div>
     <RouterLink
-      :to="`/station/${station.messstelleNr}`"
+      :to="{ name: 'station', params: { id: station.messstelleNr } }"
       class="inline-block mt-2 text-xs text-blue-600 hover:underline"
     >
       Details anzeigen

@@ -24,7 +24,7 @@ const latestValue = computed(() => props.recentData.length > 0
 
 <template>
   <RouterLink
-    :to="`/station/${station.messstelleNr}`"
+    :to="{ name: 'station', params: { id: station.messstelleNr } }"
     class="block bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow"
   >
     <div class="flex items-start justify-between">
