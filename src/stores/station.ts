@@ -27,6 +27,13 @@ export const useStationStore = defineStore('station', () => {
     loading.value = true
     error.value = null
     try {
+      if (!import.meta.env.DEV) {
+        const { getStaticStations } = await import('../api/static-data')
+        stations.value = await getStaticStations()
+        loading.value = false
+        return
+      }
+
       const raw = await getStations()
 
       // Try loading enriched data from cache

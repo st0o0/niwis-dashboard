@@ -9,7 +9,8 @@
     "build:gh": "vite build",
     "preview": "vite preview",
     "preview:gh": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prefetch": "node scripts/prefetch-data.mjs"
   },
   "dependencies": {
     "@vue-leaflet/vue-leaflet": "^0.10.1",

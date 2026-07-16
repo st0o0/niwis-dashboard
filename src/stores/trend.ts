@@ -31,6 +31,14 @@ export const useTrendStore = defineStore('trend', () => {
   async function fetchAllTrends(stations: NiwisStation[]) {
     loading.value = true
 
+    if (!import.meta.env.DEV) {
+      const { getStaticTrends } = await import('../api/static-data')
+      const data = await getStaticTrends()
+      trends.value = new Map(Object.entries(data) as [string, TrendDirection][])
+      loading.value = false
+      return
+    }
+
     const cached = await idbGet<CachedTrends>(TREND_CACHE_KEY)
     if (cached && Date.now() - cached.timestamp < TREND_TTL) {
       trends.value = new Map(cached.data)

@@ -60,7 +60,12 @@ const chartOption = computed(() => {
 
 onMounted(async () => {
   try {
-    data.value = await getKlimaindikator()
+    if (!import.meta.env.DEV) {
+      const { getStaticKlimaindikator } = await import('../api/static-data')
+      data.value = await getStaticKlimaindikator()
+    } else {
+      data.value = await getKlimaindikator()
+    }
   } catch (e) {
     console.error('Failed to load Klimaindikator', e)
   } finally {

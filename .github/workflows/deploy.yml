@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 permissions:
@@ -27,6 +29,9 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: Prefetch API data
+        run: npm run prefetch
 
       - run: npx vite build
         env:

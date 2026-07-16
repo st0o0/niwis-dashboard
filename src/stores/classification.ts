@@ -42,6 +42,19 @@ export const useClassificationStore = defineStore('classification', () => {
     loading.value = true
     progress.value = 0
 
+    if (!import.meta.env.DEV) {
+      const { getStaticKlassifikationen } = await import('../api/static-data')
+      const data = await getStaticKlassifikationen()
+      for (const [nr, val] of Object.entries(data)) {
+        const klasse = KLASSE_MAP[val]
+        if (klasse) classifications.value.set(nr, klasse)
+      }
+      classifications.value = new Map(classifications.value)
+      progress.value = 100
+      loading.value = false
+      return
+    }
+
     // Try loading classifications from cache
     const cached = await idbGet<CachedClassifications>(CLASSIFICATION_CACHE_KEY)
     if (cached && Date.now() - cached.timestamp < CLASSIFICATION_TTL) {
