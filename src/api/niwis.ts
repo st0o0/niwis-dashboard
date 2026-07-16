@@ -8,7 +8,9 @@ import type {
   ZeitreihenParams,
 } from '../types/niwis'
 
-const BASE_URL = 'https://www.niwis-online.de/api/daten'
+const BASE_URL = import.meta.env.DEV
+  ? '/api/daten'
+  : 'https://www.niwis-online.de/api/daten'
 
 const TTL = {
   stations: 24 * 60 * 60 * 1000,
@@ -19,7 +21,7 @@ const TTL = {
 } as const
 
 async function fetchJson<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const url = new URL(`${BASE_URL}${path}`)
+  const url = new URL(`${BASE_URL}${path}`, window.location.origin)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== '') {
